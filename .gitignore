@@ -2,3 +2,7 @@
 *.test
 *.swp
 /bin/
+
+# study
+.idea
+*\bolt.db

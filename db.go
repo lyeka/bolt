@@ -340,6 +340,7 @@ func (db *DB) mmapSize(size int) (int, error) {
 }
 
 // init creates a new database file and initializes its meta pages.
+// init 初始化DB
 func (db *DB) init() error {
 	// Set the page size to the OS page size.
 	db.pageSize = os.Getpagesize()
@@ -968,15 +969,15 @@ type Info struct {
 }
 
 type meta struct {
-	magic    uint32
-	version  uint32
-	pageSize uint32
+	magic    uint32 // 用于确认是boltdb实例
+	version  uint32 // boltdb版本
+	pageSize uint32 // 单位page大小
 	flags    uint32
-	root     bucket
-	freelist pgid
-	pgid     pgid
-	txid     txid
-	checksum uint64
+	root     bucket // 索引以及数据
+	freelist pgid   // 删除过程中可能出现的剩余磁盘空间
+	pgid     pgid   // 下一个将要分配的page id
+	txid     txid   // 下一个将要分配的事务id
+	checksum uint64 // 校验meta page数据本身完整性
 }
 
 // validate checks the marker bytes and version of the meta page to ensure it matches this binary.

@@ -8,6 +8,7 @@ import (
 )
 
 // node represents an in-memory, deserialized page.
+// node 代表了内存中的page
 type node struct {
 	bucket     *Bucket
 	isLeaf     bool
@@ -158,6 +159,7 @@ func (n *node) del(key []byte) {
 }
 
 // read initializes the node from a page.
+// read将page转换为node
 func (n *node) read(p *page) {
 	n.pgid = p.id
 	n.isLeaf = ((p.flags & leafPageFlag) != 0)
@@ -188,6 +190,7 @@ func (n *node) read(p *page) {
 }
 
 // write writes the items onto one or more pages.
+// write 将node转换为page
 func (n *node) write(p *page) {
 	// Initialize page.
 	if n.isLeaf {
@@ -587,9 +590,11 @@ func (n *node) dump() {
 
 type nodes []*node
 
-func (s nodes) Len() int           { return len(s) }
-func (s nodes) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s nodes) Less(i, j int) bool { return bytes.Compare(s[i].inodes[0].key, s[j].inodes[0].key) == -1 }
+func (s nodes) Len() int      { return len(s) }
+func (s nodes) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s nodes) Less(i, j int) bool {
+	return bytes.Compare(s[i].inodes[0].key, s[j].inodes[0].key) == -1
+}
 
 // inode represents an internal node inside of a node.
 // It can be used to point to elements in a page or point

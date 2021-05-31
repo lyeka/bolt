@@ -29,10 +29,10 @@ type pgid uint64
 
 type page struct {
 	id       pgid
-	flags    uint16
-	count    uint16
-	overflow uint32
-	ptr      uintptr
+	flags    uint16  // page类型
+	count    uint16  // page元素个数
+	overflow uint32  // page数据溢出到其他page数 todo
+	ptr      uintptr // 内存地址
 }
 
 // typ returns a human readable page type string used for debugging.

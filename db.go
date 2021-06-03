@@ -201,10 +201,11 @@ func Open(path string, mode os.FileMode, options *Options) (*DB, error) {
 		}
 	} else {
 		// Read the first meta page to determine the page size.
-		var buf [0x1000]byte
+		var buf [0x1000]byte // todo why 0x1000
 		if _, err := db.file.ReadAt(buf[:], 0); err == nil {
 			m := db.pageInBuffer(buf[:], 0).meta()
 			if err := m.validate(); err != nil {
+				// todo 为什么first meta page无效不直接退出
 				// If we can't read the page size, we can assume it's the same
 				// as the OS -- since that's how the page size was chosen in the
 				// first place.
@@ -340,17 +341,18 @@ func (db *DB) mmapSize(size int) (int, error) {
 }
 
 // init creates a new database file and initializes its meta pages.
-// init 初始化一个新的数据库，即写入meta page
+// init 初始化一个新的数据库
+// 一个空的数据库包含4个page -> 2 * meta page + 1 * freelist page + 1 * leaf page
 func (db *DB) init() error {
 	// Set the page size to the OS page size.
 	db.pageSize = os.Getpagesize()
 
-	// Create two meta pages on a buffer.
-	buf := make([]byte, db.pageSize*4) // TODO why * 4
+	fmt.Println("size of page_size", db.pageSize)
 	fmt.Println("size of page", unsafe.Sizeof(page{}))
 	fmt.Println("size of meta", unsafe.Sizeof(meta{}))
-	var a uintptr
-	fmt.Println("size of uintptr", unsafe.Sizeof(a))
+
+	// Create two meta pages on a buffer.
+	buf := make([]byte, db.pageSize*4) // 2 * meta page + 1 * freelist page + 1 * leaf page
 	for i := 0; i < 2; i++ {
 		p := db.pageInBuffer(buf[:], pgid(i))
 		p.id = pgid(i)
@@ -800,6 +802,7 @@ func (db *DB) page(id pgid) *page {
 }
 
 // pageInBuffer retrieves a page reference from a given byte array based on the current page size.
+// boltdb都是以page size为单位读写，以pgid作为寻址索引，某个page的字节数组起始地址为其 pgid * page size
 func (db *DB) pageInBuffer(b []byte, id pgid) *page {
 	return (*page)(unsafe.Pointer(&b[id*pgid(db.pageSize)]))
 }
@@ -972,11 +975,12 @@ type Info struct {
 	PageSize int
 }
 
+// DB 元数据
 type meta struct {
 	magic    uint32 // 用于确认是boltdb实例
 	version  uint32 // boltdb版本
 	pageSize uint32 // 单位page大小
-	flags    uint32
+	flags    uint32 // page 类型标识 -> metaPageFlag
 	root     bucket // 索引以及数据
 	freelist pgid   // 删除过程中可能出现的剩余磁盘空间
 	pgid     pgid   // 下一个将要分配的page id

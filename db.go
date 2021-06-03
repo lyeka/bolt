@@ -340,13 +340,17 @@ func (db *DB) mmapSize(size int) (int, error) {
 }
 
 // init creates a new database file and initializes its meta pages.
-// init 初始化DB
+// init 初始化一个新的数据库，即写入meta page
 func (db *DB) init() error {
 	// Set the page size to the OS page size.
 	db.pageSize = os.Getpagesize()
 
 	// Create two meta pages on a buffer.
-	buf := make([]byte, db.pageSize*4)
+	buf := make([]byte, db.pageSize*4) // TODO why * 4
+	fmt.Println("size of page", unsafe.Sizeof(page{}))
+	fmt.Println("size of meta", unsafe.Sizeof(meta{}))
+	var a uintptr
+	fmt.Println("size of uintptr", unsafe.Sizeof(a))
 	for i := 0; i < 2; i++ {
 		p := db.pageInBuffer(buf[:], pgid(i))
 		p.id = pgid(i)

@@ -43,6 +43,7 @@ func unlockFileEx(h syscall.Handle, reserved, locklow, lockhigh uint32, ol *sysc
 }
 
 // fdatasync flushes written data to a file descriptor.
+// fdatasync 将文件的内核态缓存刷入磁盘
 func fdatasync(db *DB) error {
 	return db.file.Sync()
 }
